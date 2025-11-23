@@ -9,6 +9,9 @@
 
 package org.elasticsearch.transport;
 
+import com.samedov.annotation.Complexity;
+import com.samedov.annotation.Prove;
+
 import org.elasticsearch.cluster.node.DiscoveryNode;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.rest.RestStatus;
@@ -25,18 +28,21 @@ public class ReceiveTimeoutTransportException extends ActionTransportException {
         super(in);
     }
 
+    @Prove(complexity = Complexity.O_1, n = "", count = {})
     @Override
     public synchronized Throwable fillInStackTrace() {
         // stack trace is uninformative
         return this;
     }
 
+    @Prove(complexity = Complexity.O_1, n = "", count = {})
     @Override
     public RestStatus status() {
         // closest thing to "your request took longer than you asked for"
         return RestStatus.TOO_MANY_REQUESTS;
     }
 
+    @Prove(complexity = Complexity.O_1, n = "", count = {})
     @Override
     public boolean isTimeout() {
         return true;

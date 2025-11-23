@@ -16,6 +16,16 @@
          <trust file=".*-javadoc[.]jar" regex="true"/>
          <trust file=".*-sources[.]jar" regex="true"/>
          <trust group="openjdk_.*" regex="true"/>
+         <trust group="com.samedov"/>
+         <trust group="com.github.javaparser"/>
+         <trust group="com.google.guava"/>
+         <trust group="org.checkerframework"/>
+         <trust group="jakarta.json"/>
+         <trust group="org.eclipse.parsson"/>
+         <trust group="org.javassist"/>
+         <trust group="org.junit.jupiter"/>
+         <trust group="org.junit.platform"/>
+         <trust group="org.slf4j"/>
       </trusted-artifacts>
    </configuration>
    <components>

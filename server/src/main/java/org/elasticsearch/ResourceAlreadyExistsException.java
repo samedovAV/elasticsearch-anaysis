@@ -9,6 +9,9 @@
 
 package org.elasticsearch;
 
+import com.samedov.annotation.Complexity;
+import com.samedov.annotation.Prove;
+
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.index.Index;
 import org.elasticsearch.rest.RestStatus;
@@ -31,6 +34,7 @@ public class ResourceAlreadyExistsException extends ElasticsearchException {
         super(in);
     }
 
+    @Prove(complexity = Complexity.O_1, n = "", count = {})
     @Override
     public RestStatus status() {
         return RestStatus.BAD_REQUEST;

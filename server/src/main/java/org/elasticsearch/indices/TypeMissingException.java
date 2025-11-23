@@ -9,6 +9,9 @@
 
 package org.elasticsearch.indices;
 
+import com.samedov.annotation.Complexity;
+import com.samedov.annotation.Prove;
+
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.index.Index;
@@ -38,6 +41,7 @@ public final class TypeMissingException extends ElasticsearchException {
         super(in);
     }
 
+    @Prove(complexity = Complexity.O_1, n = "", count = {})
     @Override
     public RestStatus status() {
         return RestStatus.NOT_FOUND;

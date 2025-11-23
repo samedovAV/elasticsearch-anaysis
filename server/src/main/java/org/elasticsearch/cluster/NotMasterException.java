@@ -8,6 +8,9 @@
  */
 package org.elasticsearch.cluster;
 
+import com.samedov.annotation.Complexity;
+import com.samedov.annotation.Prove;
+
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.support.master.TransportMasterNodeAction;
 import org.elasticsearch.cluster.coordination.FailedToCommitClusterStateException;
@@ -42,6 +45,7 @@ public class NotMasterException extends ElasticsearchException {
         super(msg, cause, args);
     }
 
+    @Prove(complexity = Complexity.O_1, n = "", count = {})
     @Override
     public Throwable fillInStackTrace() {
         return this;

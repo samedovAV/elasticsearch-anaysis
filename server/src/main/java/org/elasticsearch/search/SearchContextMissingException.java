@@ -9,6 +9,9 @@
 
 package org.elasticsearch.search;
 
+import com.samedov.annotation.Complexity;
+import com.samedov.annotation.Prove;
+
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
@@ -26,10 +29,12 @@ public class SearchContextMissingException extends ElasticsearchException {
         this.contextId = contextId;
     }
 
+    @Prove(complexity = Complexity.O_1, n = "", count = {})
     public ShardSearchContextId contextId() {
         return this.contextId;
     }
 
+    @Prove(complexity = Complexity.O_1, n = "", count = {})
     @Override
     public RestStatus status() {
         return RestStatus.NOT_FOUND;
@@ -40,6 +45,7 @@ public class SearchContextMissingException extends ElasticsearchException {
         contextId = new ShardSearchContextId(in);
     }
 
+    @Prove(complexity = Complexity.O_1, n = "", count = {})
     @Override
     protected void writeTo(StreamOutput out, Writer<Throwable> nestedExceptionsWriter) throws IOException {
         super.writeTo(out, nestedExceptionsWriter);

@@ -9,6 +9,9 @@
 
 package org.elasticsearch.reservedstate.service;
 
+import com.samedov.annotation.Complexity;
+import com.samedov.annotation.Prove;
+
 import org.elasticsearch.cluster.metadata.ProjectId;
 import org.elasticsearch.cluster.metadata.ReservedStateErrorMetadata;
 
@@ -47,6 +50,7 @@ record ErrorState(
         this(Optional.of(projectId), namespace, version, versionCheck, List.of(stackTrace(e)), errorKind);
     }
 
+    @Prove(complexity = Complexity.O_N, n = "errors.size()", count = {})
     public String toString() {
         return String.join(", ", errors());
     }

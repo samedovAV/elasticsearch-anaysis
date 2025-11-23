@@ -8,6 +8,9 @@
  */
 package org.elasticsearch;
 
+import com.samedov.annotation.Complexity;
+import com.samedov.annotation.Prove;
+
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.rest.RestStatus;
 
@@ -30,6 +33,7 @@ public class ResourceNotFoundException extends ElasticsearchException {
         super(in);
     }
 
+    @Prove(complexity = Complexity.O_1, n = "", count = {})
     @Override
     public final RestStatus status() {
         return RestStatus.NOT_FOUND;

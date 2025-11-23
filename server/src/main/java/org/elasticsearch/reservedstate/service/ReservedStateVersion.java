@@ -9,6 +9,9 @@
 
 package org.elasticsearch.reservedstate.service;
 
+import com.samedov.annotation.Complexity;
+import com.samedov.annotation.Prove;
+
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Writeable;
@@ -43,14 +46,17 @@ public record ReservedStateVersion(Long version, BuildVersion buildVersion) impl
         PARSER.declareString(ConstructingObjectParser.constructorArg(), COMPATIBILITY);
     }
 
+    @Prove(complexity = Complexity.O_1, n = "", count = {})
     public static ReservedStateVersion parse(XContentParser parser) {
         return PARSER.apply(parser, null);
     }
 
+    @Prove(complexity = Complexity.O_1, n = "", count = {})
     public static ReservedStateVersion readFrom(StreamInput input) throws IOException {
         return new ReservedStateVersion(input.readLong(), BuildVersion.fromStream(input));
     }
 
+    @Prove(complexity = Complexity.O_1, n = "", count = {})
     @Override
     public void writeTo(StreamOutput out) throws IOException {
         out.writeLong(version);
