@@ -15,6 +15,18 @@ apply plugin: 'elasticsearch.test-build-info'
 apply plugin: 'elasticsearch.transport-version-references'
 apply plugin: 'elasticsearch.transport-version-resources'
 
+// Add repository for thesis analyzer annotations
+repositories {
+  maven {
+    name = "ThesisLocalRepo"
+    url = uri("/home/samedov/coding/thesis/local-repo")
+  }
+}
+
+configurations {
+  staticAnalyzer
+}
+
 publishing {
   publications {
     elastic {
@@ -26,6 +38,8 @@ publishing {
 base {
   archivesName = 'elasticsearch'
 }
+
+def thesisVersion = "1.2"
 
 dependencies {
 
@@ -89,6 +103,11 @@ dependencies {
   internalClusterTestImplementation(project(':modules:reindex'))
   internalClusterTestImplementation(project(':modules:mapper-extras'))
   internalClusterTestImplementation(project(':modules:data-streams'))
+
+  compileOnly("com.samedov:thesis:$thesisVersion")
+  staticAnalyzer("com.samedov:thesis:$thesisVersion")
+  // Add SLF4J implementation so analyzer logging works
+  staticAnalyzer "org.slf4j:slf4j-simple:2.0.9"
 }
 
 spotless {
@@ -297,5 +316,57 @@ tasks.named("generateTestBuildInfo").configure {
   t -> {
     t.getComponentName().set("server")
     t.getOutputFile().set(project.getLayout().getBuildDirectory().file("generated-build-info/server-test-build-info.json"))
+  }
+}
+
+// Run the thesis static analyzer for the :server module only
+tasks.register('runServerStaticAnalysis', JavaExec) {
+  group = 'verification'
+  description = 'Runs @Prove static analysis on the :server module.'
+
+  // Only put the analyzer on the classpath, not the server's compiled classes
+  // The analyzer parses source files, it doesn't need the compiled classes on the classpath
+  classpath = configurations.staticAnalyzer
+
+  mainClass = 'com.samedov.StaticAnalyzerMain'
+
+  jvmArgs = ['-Xms4g', '-Xmx8g', '-XX:+UseG1GC', '-XX:StartFlightRecording=filename=profile.jfr,duration=120s,settings=profile']
+
+  // Analyzer configuration
+  def rootDirValue = project.findProperty('dirToStart') ?: 'server/src/main/java'
+  def parallelGlobalValue = project.findProperty('parallelGlobal') ?: 'false'
+  def parallelFileValue = project.findProperty('parallelFile') ?: 'false'
+
+  systemProperty 'parallelGlobal', parallelGlobalValue
+  systemProperty 'parallelFile', parallelFileValue
+  // Point to a specific directory with annotated files, not the entire server module
+  systemProperty 'dirToStart', rootDirValue
+
+  dependsOn tasks.named('classes')
+
+  // Track execution time
+  def startTime
+  def availableProcessors = Runtime.getRuntime().availableProcessors()
+
+  doFirst {
+    startTime = System.currentTimeMillis()
+    println "=================================================================================="
+    println "Starting Static Analysis at: ${new Date()}"
+    println "Root directory for analysis: ${rootDirValue}"
+    println "Parallel Global: ${parallelGlobalValue}"
+    println "Parallel File: ${parallelFileValue}"
+    println "Available Processors: ${availableProcessors}"
+    println "=================================================================================="
+  }
+
+  doLast {
+    def endTime = System.currentTimeMillis()
+    def durationMs = endTime - startTime
+    def durationSeconds = durationMs / 1000.0
+    def durationMinutes = durationSeconds / 60.0
+    println "=================================================================================="
+    println "Static Analysis completed at: ${new Date()}"
+    println "Total execution time: ${durationMs} ms (${String.format('%.2f', durationSeconds)} seconds / ${String.format('%.2f', durationMinutes)} minutes)"
+    println "=================================================================================="
   }
 }

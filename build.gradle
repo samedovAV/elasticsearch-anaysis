@@ -31,6 +31,10 @@ import static org.elasticsearch.gradle.util.GradleUtils.maybeConfigure
 buildscript {
   repositories {
     mavenCentral()
+    maven {
+      name = "MyLocalRepo"
+      url = uri("/home/samedov/coding/thesis/local-repo")
+    }
   }
 }
 
@@ -57,6 +61,15 @@ plugins {
 }
 
 version = VersionProperties.elasticsearch
+
+// Add repository for thesis analyzer dependency
+repositories {
+  mavenCentral()
+  maven {
+    name = "ThesisLocalRepo"
+    url = uri("/home/samedov/coding/thesis/local-repo")
+  }
+}
 
 /**
  * Here we package and aggregation zip file containing all maven artifacts we want to
@@ -302,15 +315,28 @@ subprojects { proj ->
   apply plugin: 'elasticsearch.base'
 }
 
+def thesisVersion = "1.2"
+
+// Marker configuration for subprojects (not used for resolution)
+configurations {
+  staticAnalyzer
+}
+
 allprojects {
   // We disable this plugin for now till we shaked out the issues we see
   // e.g. see https://github.com/elastic/elasticsearch/issues/72169
   // apply plugin:'elasticsearch.internal-test-rerun'
 
+  // Use a dedicated configuration for the analyzer so it doesn't participate in compilation
+  configurations {
+    staticAnalyzer
+  }
+
   plugins.withType(BaseInternalPluginBuildPlugin).whenPluginAdded {
     project.dependencies {
       compileOnly project(":server")
       testImplementation project(":test:framework")
+      add('staticAnalyzer', "com.samedov:thesis:$thesisVersion")
     }
   }
 
@@ -591,3 +617,17 @@ tasks.register("spotlessApply").configure {
   dependsOn gradle.includedBuild('build-tools').task(':reaper:spotlessApply')
   dependsOn gradle.includedBuild('build-tools-internal').task(':spotlessApply')
 }
+
+tasks.register('runStaticAnalysis', JavaExec) {
+  group = 'verification'
+  description = 'Runs static analysis for @Prove annotations.'
+  // Resolve the analyzer JAR + its transitive deps at execution time
+  classpath = sourceSets.main.runtimeClasspath + configurations.staticAnalyzer
+  mainClass = 'com.samedov.StaticAnalyzerMain'
+  systemProperty 'parallelGlobal', project.findProperty('parallelGlobal') ?: 'false'
+  systemProperty 'parallelFile', project.findProperty('parallelFile') ?: 'false'
+  systemProperty 'rootDir', project.findProperty('rootDir') ?: project.projectDir.absolutePath
+}
+
+// Task timing tracking has been removed to avoid Gradle 10 deprecation warnings
+// Use --profile or --scan flags to get detailed task timing information instead
